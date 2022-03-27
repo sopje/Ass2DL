@@ -1,68 +1,41 @@
-import sys
-import os
-import shutil
-import papermill as pm
-import scrapbook as sb
 import pandas as pd
 import numpy as np
 import tensorflow as tf
 tf.get_logger().setLevel('ERROR') # only show error messages
 
-from recommenders.utils.timer import Timer
+from data_exploration import *
 from recommenders.models.ncf.ncf_singlenode import NCF
 from recommenders.models.ncf.dataset import Dataset as NCFDataset
-from recommenders.datasets import movielens
-from recommenders.datasets.python_splitters import python_chrono_split
+from recommenders.datasets.python_splitters import python_chrono_split #TODO: why do we need the chrono split and what does it do? Snap het nog niet, te moe
 from recommenders.evaluation.python_evaluation import (rmse, mae, rsquared, exp_var, map_at_k, ndcg_at_k, precision_at_k,
                                                      recall_at_k, get_top_k_items)
-from recommenders.utils.constants import SEED as DEFAULT_SEED
-
-
-print("System version: {}".format(sys.version))
-print("Pandas version: {}".format(pd.__version__))
-print("Tensorflow version: {}".format(tf.__version__))
-print("TEST:", tf.test.is_built_with_cuda())
-print("TEST:", tf.test.is_gpu_available(cuda_only=False, min_cuda_compute_capability=None))
-#%%
-
-# top k items to recommend
-TOP_K = 10
-
-# Select MovieLens data size: 100k, 1m, 10m, or 20m
-MOVIELENS_DATA_SIZE = '100k'
+from recommenders.utils.constants import SEED as default_seed
+from recommenders.utils.timer import Timer
 
 # Model parameters
-EPOCHS = 200
-BATCH_SIZE = 10000
+no_epochs = 100
+batch_size = 256
+seed = default_seed
 
-SEED = DEFAULT_SEED  # Set None for non-deterministic results
+# top k items to recommend
+top_k = 10
 
-
-df = movielens.load_pandas_df(
-    size=MOVIELENS_DATA_SIZE,
-    header=["userID", "itemID", "rating", "timestamp"]
-)
-
-df.head()
-
-train, test = python_chrono_split(df, 0.75)
-
-#%% md
+print('--------- load data ----------')
+ratings = load_data()
+print(ratings.head())
 
 #%%
+# print('---------- data exploration -------------')
+# data_exploration(ratings_small)
 
+# Filter out any users or items in the test set that do not appear in the training set #TODO: whyyyy?
+train, test = python_chrono_split(ratings, 0.75) # TODO: why 075
 test = test[test["userID"].isin(train["userID"].unique())]
 test = test[test["itemID"].isin(train["itemID"].unique())]
+#TODO: make this our own code
 
-print(test)
-#%%
-
+# TODO: make own code
 leave_one_out_test = test.groupby("userID").last().reset_index()
-print(leave_one_out_test)
-
-#%% md
-
-#%%
 
 train_file = "./train.csv"
 test_file = "./test.csv"
@@ -72,16 +45,15 @@ test.to_csv(test_file, index=False)
 leave_one_out_test.to_csv(leave_one_out_test_file, index=False)
 
 
+data = NCFDataset(train_file=train_file, test_file=leave_one_out_test_file, seed=seed, overwrite_test_file_full=True)
 
-data = NCFDataset(train_file=train_file, test_file=leave_one_out_test_file, seed=SEED, overwrite_test_file_full=True)
-print(data)
 
 model = NCF(
     n_users=data.n_users,
     n_items=data.n_items,
     model_type="NeuMF",
-    n_factors=16,
-    layer_sizes=[32,16,8],
+    n_factors=4,
+    layer_sizes=[16,8,4],
     n_epochs=EPOCHS,
     batch_size=BATCH_SIZE,
     learning_rate=1e-3,
@@ -90,12 +62,10 @@ model = NCF(
 )
 
 
-
 with Timer() as train_time:
     model.fit(data)
 
 print("Took {} seconds for training.".format(train_time.interval))
-
 
 
 predictions = [[row.userID, row.itemID, model.predict(row.userID, row.itemID)]
@@ -164,9 +134,9 @@ model = NCF (
     n_users=data.n_users,
     n_items=data.n_items,
     model_type="GMF",
-    n_factors=16,
-    layer_sizes=[32,16,8],
-    n_epochs=200,
+    n_factors=4,
+    layer_sizes=[16,8,4],
+    n_epochs=EPOCHS,
     batch_size=BATCH_SIZE,
     learning_rate=1e-3,
     verbose=10,
@@ -184,8 +154,8 @@ model = NCF (
     n_users=data.n_users,
     n_items=data.n_items,
     model_type="MLP",
-    n_factors=16,
-    layer_sizes=[32,16,8],
+    n_factors=4,
+    layer_sizes=[16,8,4],
     n_epochs=EPOCHS,
     batch_size=BATCH_SIZE,
     learning_rate=1e-3,
@@ -205,8 +175,8 @@ model = NCF (
     n_users=data.n_users,
     n_items=data.n_items,
     model_type="NeuMF",
-    n_factors=16,
-    layer_sizes=[32,16,8],
+    n_factors=4,
+    layer_sizes=[16,8,4],
     n_epochs=EPOCHS,
     batch_size=BATCH_SIZE,
     learning_rate=1e-3,
@@ -248,15 +218,6 @@ print("MAP:\t%f" % eval_map2,
       "Precision@K:\t%f" % eval_precision2,
       "Recall@K:\t%f" % eval_recall2, sep='\n')
 
-# # Record results with papermill for tests
-# sb.glue("map", eval_map)
-# sb.glue("ndcg", eval_ndcg)
-# sb.glue("precision", eval_precision)
-# sb.glue("recall", eval_recall)
-# sb.glue("map2", eval_map2)
-# sb.glue("ndcg2", eval_ndcg2)
-# sb.glue("precision2", eval_precision2)
-# sb.glue("recall2", eval_recall2)
 
 for b in data.test_loader():
     user_input, item_input, labels = b
@@ -273,6 +234,3 @@ for b in data.test_loader():
 
 eval_ndcg = np.mean(ndcgs)
 eval_hr = np.mean(hit_ratio)
-
-print("HR:\t%f" % eval_hr)
-print("NDCG:\t%f" % eval_ndcg)
