@@ -46,7 +46,7 @@ df = movielens.load_pandas_df(
 )
 
 df.head()
-
+print(df)
 train, test = python_chrono_split(df, 0.75)
 
 #%% md

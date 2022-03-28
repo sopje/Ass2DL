@@ -11,6 +11,11 @@ def load_data():
             newLines.append(newLine)
 
     ratings = pd.DataFrame(newLines)
+    ratings.columns = ["userID", "itemID", "rating", "timestamp"]
+    ratings['userID'] = ratings.userID.astype(int)
+    ratings['itemID'] = ratings.itemID.astype(int)
+    ratings['rating'] = ratings.rating.astype(int)
+    ratings['timestamp'] = ratings.timestamp.astype(int)
     return ratings
 
 
