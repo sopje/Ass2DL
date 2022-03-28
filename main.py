@@ -23,6 +23,8 @@ print("Pandas version: {}".format(pd.__version__))
 print("Tensorflow version: {}".format(tf.__version__))
 print("TEST:", tf.test.is_built_with_cuda())
 print("TEST:", tf.test.is_gpu_available(cuda_only=False, min_cuda_compute_capability=None))
+print("TEST Physical GPU:", tf.config.list_physical_devices('GPU'))
+
 #%%
 
 # top k items to recommend

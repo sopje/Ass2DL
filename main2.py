@@ -20,13 +20,25 @@ seed = default_seed
 # top k items to recommend
 top_k = 10
 
+# Grid search parameters
+grid_search = True
+# batch_size = [128, 256, 512, 1024]
+# learning_rate = [0.0001 ,0.0005, 0.001, 0.005]
+# predictive_factor = [8, 16, 32, 64]
+# n_factors = [16]
+
+# if the size of predictive factors is 8, then the architecture of the neural CF layers is 32 → 16 → 8, and the embedding size is 16 (n_factors in our case I think)
+
+
+
 print('--------- load data ----------')
 ratings = load_data()
 print(ratings.head())
 
 #%%
 # print('---------- data exploration -------------')
-# data_exploration(ratings_small)
+#data_exploration(ratings)
+
 
 # Filter out any users or items in the test set that do not appear in the training set #TODO: whyyyy?
 train, test = python_chrono_split(ratings, 0.75) # TODO: why 075
@@ -48,6 +60,7 @@ leave_one_out_test.to_csv(leave_one_out_test_file, index=False)
 data = NCFDataset(train_file=train_file, test_file=leave_one_out_test_file, seed=seed, overwrite_test_file_full=True)
 
 
+print('---------- NeuMF model without pre-training -----------')
 model = NCF(
     n_users=data.n_users,
     n_items=data.n_items,
@@ -65,45 +78,42 @@ model = NCF(
 with Timer() as train_time:
     model.fit(data)
 
-print("Took {} seconds for training.".format(train_time.interval))
+print("Took {} seconds for training.".format(train_time.interval)) #TODO: how to save this loss?
 
+# predictions = [[row.userID, row.itemID, model.predict(row.userID, row.itemID)]
+#                for (_, row) in test.iterrows()]  #TODO: you use test here!!
+#
+#
+# predictions = pd.DataFrame(predictions, columns=['userID', 'itemID', 'prediction'])
+# predictions.head()
+#
+# with Timer() as test_time:
+#     users, items, preds = [], [], []
+#     item = list(train.itemID.unique())
+#     for user in train.userID.unique():
+#         user = [user] * len(item)
+#         users.extend(user)
+#         items.extend(item)
+#         preds.extend(list(model.predict(user, item, is_list=True)))
+#
+#     all_predictions = pd.DataFrame(data={"userID": users, "itemID": items, "prediction": preds})
+#
+#     merged = pd.merge(train, all_predictions, on=["userID", "itemID"], how="outer")
+#     all_predictions = merged[merged.rating.isnull()].drop('rating', axis=1)
+#
+# print("Took {} seconds for prediction.".format(test_time.interval))
+#
+# eval_map = map_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
+# eval_ndcg = ndcg_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
+# eval_precision = precision_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
+# eval_recall = recall_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
 
-predictions = [[row.userID, row.itemID, model.predict(row.userID, row.itemID)]
-               for (_, row) in test.iterrows()]
-
-
-predictions = pd.DataFrame(predictions, columns=['userID', 'itemID', 'prediction'])
-predictions.head()
-
-
-with Timer() as test_time:
-
-    users, items, preds = [], [], []
-    item = list(train.itemID.unique())
-    for user in train.userID.unique():
-        user = [user] * len(item)
-        users.extend(user)
-        items.extend(item)
-        preds.extend(list(model.predict(user, item, is_list=True)))
-
-    all_predictions = pd.DataFrame(data={"userID": users, "itemID":items, "prediction":preds})
-
-    merged = pd.merge(train, all_predictions, on=["userID", "itemID"], how="outer")
-    all_predictions = merged[merged.rating.isnull()].drop('rating', axis=1)
-
-print("Took {} seconds for prediction.".format(test_time.interval))
-
-
-
-eval_map = map_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-eval_ndcg = ndcg_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-eval_precision = precision_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-eval_recall = recall_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-
-print("MAP:\t%f" % eval_map,
-      "NDCG:\t%f" % eval_ndcg,
-      "Precision@K:\t%f" % eval_precision,
-      "Recall@K:\t%f" % eval_recall, sep='\n')
+# TODO: these are all metrics that are not in the paper......
+#
+# print("MAP:\t%f" % eval_map,
+#       "NDCG:\t%f" % eval_ndcg,
+#       "Precision@K:\t%f" % eval_precision,
+#       "Recall@K:\t%f" % eval_recall, sep='\n')
 
 
 k = TOP_K
@@ -111,6 +121,7 @@ k = TOP_K
 ndcgs = []
 hit_ratio = []
 
+#TODO: this evaluation for test does not work
 for b in data.test_loader():
     user_input, item_input, labels = b
     output = model.predict(user_input, item_input, is_list=True)
@@ -130,7 +141,8 @@ eval_hr = np.mean(hit_ratio)
 print("HR:\t%f" % eval_hr)
 print("NDCG:\t%f" % eval_ndcg)
 
-model = NCF (
+# TODO: which of these parameters does GMF actually use??
+model = NCF(
     n_users=data.n_users,
     n_items=data.n_items,
     model_type="GMF",
@@ -150,7 +162,8 @@ print("Took {} seconds for training.".format(train_time.interval))
 
 model.save(dir_name=".pretrain/GMF")
 
-model = NCF (
+# TODO: which of these parameters does the MLP actually use??
+model = NCF(
     n_users=data.n_users,
     n_items=data.n_items,
     model_type="MLP",
@@ -191,32 +204,31 @@ with Timer() as train_time:
 
 print("Took {} seconds for training.".format(train_time.interval))
 
-with Timer() as test_time:
-
-    users, items, preds = [], [], []
-    item = list(train.itemID.unique())
-    for user in train.userID.unique():
-        user = [user] * len(item)
-        users.extend(user)
-        items.extend(item)
-        preds.extend(list(model.predict(user, item, is_list=True)))
-
-    all_predictions = pd.DataFrame(data={"userID": users, "itemID":items, "prediction":preds})
-
-    merged = pd.merge(train, all_predictions, on=["userID", "itemID"], how="outer")
-    all_predictions = merged[merged.rating.isnull()].drop('rating', axis=1)
-
-print("Took {} seconds for prediction.".format(test_time.interval))
-
-eval_map2 = map_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-eval_ndcg2 = ndcg_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-eval_precision2 = precision_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-eval_recall2 = recall_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
-
-print("MAP:\t%f" % eval_map2,
-      "NDCG:\t%f" % eval_ndcg2,
-      "Precision@K:\t%f" % eval_precision2,
-      "Recall@K:\t%f" % eval_recall2, sep='\n')
+# with Timer() as test_time:
+#     users, items, preds = [], [], []
+#     item = list(train.itemID.unique())
+#     for user in train.userID.unique():
+#         user = [user] * len(item)
+#         users.extend(user)
+#         items.extend(item)
+#         preds.extend(list(model.predict(user, item, is_list=True)))
+#
+#     all_predictions = pd.DataFrame(data={"userID": users, "itemID": items, "prediction": preds})
+#
+#     merged = pd.merge(train, all_predictions, on=["userID", "itemID"], how="outer")
+#     all_predictions = merged[merged.rating.isnull()].drop('rating', axis=1)
+#
+# print("Took {} seconds for prediction.".format(test_time.interval))
+#
+# eval_map2 = map_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
+# eval_ndcg2 = ndcg_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
+# eval_precision2 = precision_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
+# eval_recall2 = recall_at_k(test, all_predictions, col_prediction='prediction', k=TOP_K)
+#
+# print("MAP:\t%f" % eval_map2,
+#       "NDCG:\t%f" % eval_ndcg2,
+#       "Precision@K:\t%f" % eval_precision2,
+#       "Recall@K:\t%f" % eval_recall2, sep='\n')
 
 
 for b in data.test_loader():

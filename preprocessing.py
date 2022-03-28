@@ -4,14 +4,20 @@ import numpy as np
 from tqdm import tqdm
 
 
-def train_test_split(ratings):
+def train_test_split(ratings, grid_search = False):
     # order per user the ratings s.t. timestamp is descending, then newest_rated = 1 for the newest ranked
     ratings['newest_rated'] = ratings.groupby(['userId'])['timestamp'].rank(method='first', ascending=False)
     # @ sophie: deze regel geeft een warning maar dat is een vals positief in pandas, dus maakt niet uit
 
+
+    #TODO: adjust for grid_search case, choose random for each user
+    if grid_search:
+        train = ratings[ratings['newest_rated'] != 1]
+        test = ratings[ratings['newest_rated'] == 1]
+    else:
     # make train test split
-    train = ratings[ratings['newest_rated'] != 1]
-    test = ratings[ratings['newest_rated'] == 1]
+        train = ratings[ratings['newest_rated'] != 1]
+        test = ratings[ratings['newest_rated'] == 1]
 
     # drop time step column because we no longer need it
     train = train[['userId', 'movieId', 'rating']]
@@ -25,6 +31,7 @@ def transform_to_implicit(train):
     return train
 
 
+#TODO: remove because not needed
 def add_negatives(train, ratings):
     num_negatives = 5  # TODO: now ratio 5:1, but maybe adjust
     all_movies = ratings['movieId'].unique()  # get all different movie Ids from the whole data set
