@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from recommenders.datasets.python_splitters import python_chrono_split
 
 def load_data():
     with open('data/ml-100k/u.data') as input_file:

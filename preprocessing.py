@@ -4,29 +4,24 @@ import numpy as np
 from tqdm import tqdm
 
 
-def train_test_split(ratings, grid_search = False):
-    # order per user the ratings s.t. timestamp is descending, then newest_rated = 1 for the newest ranked
-    ratings['newest_rated'] = ratings.groupby(['userID'])['timestamp'].rank(method='first', ascending=False)
-    # @ sophie: deze regel geeft een warning maar dat is een vals positief in pandas, dus maakt niet uit
+def create_test(ratings, grid_search = False):
+    # Make train test split
+    # TODO: add the chrono split or not...
 
-
-    #TODO: adjust for grid_search case, choose random for each user
     if grid_search:
-        train = ratings[ratings['newest_rated'] != 1]
-        test = ratings[ratings['newest_rated'] == 1]
+        test = ratings.groupby("userID").sample(random_state=42).reset_index() #TODO: set randomstate
+        train = pd.merge(ratings, test, indicator=True, how='outer').query('_merge=="left_only"').drop(
+            '_merge', axis=1)
+        train = train.drop(['index'], axis=1)
     else:
-    # make train test split
-        train = ratings[ratings['newest_rated'] != 1]
-        test = ratings[ratings['newest_rated'] == 1]
+        test = ratings.groupby("userID").last().reset_index()
+        train = pd.merge(ratings, test, indicator=True, how='outer').query('_merge=="left_only"').drop(
+            '_merge', axis=1)
 
-    # drop time step column because we no longer need it
-    train = train[['userID', 'itemID', 'rating', 'timestamp']]
-    test = test[['userID', 'itemID', 'rating', 'timestamp']]
-
+    # sort for train, because train is not sorted
     train = train.sort_values(by='userID')
-    test = test.sort_values(by='userID')
 
-    return train, test
+    return test, train
 
 
 def transform_to_implicit(train):
