@@ -48,6 +48,7 @@ ratings = load_data()
 
 # %% Make train-test split
 print('---------- pre-processing -----------')
+test, train = create_test(ratings, grid_search)
 train_file = "./train.csv"
 test_file = "./test.csv"
 train.to_csv(train_file, index=False)
@@ -80,7 +81,7 @@ for batch_size, learning_rate, layer_sizes, n_factors in models_NeuMF_npt:
     )
 
     with Timer() as train_time:
-        model.fit(data)
+        train_loss = model.fit(data)
 
     print("Took {} seconds for training model with key: ".format(train_time.interval), key) #TODO: how to save this loss?
 
@@ -110,7 +111,7 @@ for batch_size, learning_rate, layer_sizes, n_factors in models_NeuMF_npt:
 
     grid_search_results_NeuMF_npt = grid_search_results_NeuMF_npt.append({
         'Parameters': key,
-        'Final Loss': 10,
+        'Final Loss': train_loss[len(train_loss)-1],
         'Train time': train_time.interval,
         'NDCG': eval_ndcg,
         'HR': eval_hr,
