@@ -26,14 +26,14 @@ grid_search = True
 
 # Model parameters
 if grid_search:
-    # batch_sizes = [256, 512, 1024]
-    batch_sizes = [256]
-    # learning_rates = [0.0001, 0.001]
-    learning_rates = [0.001]
-    # layer_sizes_list = [[32, 16, 8], [64, 32, 16], [128, 64, 32]] #TODO: how do n_factors and n_factors_list combine?
-    layer_sizes_list = [[32, 16, 8]] #TODO: how do n_factors and n_factors_list combine?
-    # n_factors_list = [4, 8, 16]
-    n_factors_list = [4, 8]
+    batch_sizes = [256, 512, 1024]
+    # batch_sizes = [512]
+    learning_rates = [0.0001, 0.001]
+    #learning_rates = [0.001]
+    layer_sizes_list = [[32, 16, 8], [64, 32, 16], [128, 64, 32]] #TODO: how do n_factors and n_factors_list combine?
+    #layer_sizes_list = [[32, 16, 8]] #TODO: how do n_factors and n_factors_list combine?
+    n_factors_list = [4, 8, 16]
+    # n_factors_list = [4, 8]
 else:
     batch_sizes = [256]
     learning_rates = [1e-3]
@@ -41,7 +41,7 @@ else:
     n_factors_list = [16]
 
 seed = default_seed
-n_epochs = 1
+n_epochs = 2
 
 print('--------- load data ----------')
 ratings = load_data()
@@ -59,8 +59,8 @@ train_file = "./train.csv"
 test_file = "./test.csv"
 train.to_csv(train_file, index=False)
 test.to_csv(test_file, index=False)
-train_fileRANDOM = "./trainRANDOM.csv"
-test_fileRANDOM = "./testRANDOM.csv"
+#train_fileRANDOM = "./trainRANDOM.csv"
+#test_fileRANDOM = "./testRANDOM.csv"
 # trainRandom.to_csv(train_fileRANDOM, index=False)
 # testRandom.to_csv(test_fileRANDOM, index=False)
 
@@ -126,7 +126,7 @@ for batch_size, learning_rate, layer_sizes, n_factors in models_NeuMF_npt:
 
     grid_search_results_NeuMF_npt = grid_search_results_NeuMF_npt.append({
         'Parameters': key,
-        'Final Loss': train_loss[len(train_loss)-1],
+        'Final Loss': output[len(output)-1],
         'Train time': train_time.interval,
         'NDCG': eval_ndcg,
         'HR': eval_hr,
