@@ -21,17 +21,22 @@ def load_data():
 
 
 def create_test(ratings, grid_search=False):
-    # Make train test split
 
+    # Make train test split
     if grid_search:
         test = ratings.groupby("userID").sample(random_state=42).reset_index()  # TODO: set randomstate
         train = pd.merge(ratings, test, indicator=True, how='outer').query('_merge=="left_only"').drop(
             '_merge', axis=1)                                                   # delete test samples out training set
         train = train.drop(['index'], axis=1)
+        test = test.drop(['index'], axis=1)
+        test = test[test["userID"].isin(train["userID"].unique())]
+        test = test[test["itemID"].isin(train["itemID"].unique())]
     else:
         test = ratings.groupby("userID").last().reset_index()
         train = pd.merge(ratings, test, indicator=True, how='outer').query('_merge=="left_only"').drop(
             '_merge', axis=1)
+        test = test[test["userID"].isin(train["userID"].unique())]
+        test = test[test["itemID"].isin(train["itemID"].unique())]
 
     # sort train data by user id
     train = train.sort_values(by='userID')
