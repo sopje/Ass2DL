@@ -41,7 +41,7 @@ else:
     n_factors_list = [16]
 
 seed = default_seed
-n_epochs = 1
+n_epochs = 2
 
 print('--------- load data ----------')
 ratings = load_data()
@@ -59,8 +59,8 @@ train_file = "./train.csv"
 test_file = "./test.csv"
 train.to_csv(train_file, index=False)
 test.to_csv(test_file, index=False)
-train_fileRANDOM = "./trainRANDOM.csv"
-test_fileRANDOM = "./testRANDOM.csv"
+#train_fileRANDOM = "./trainRANDOM.csv"
+#test_fileRANDOM = "./testRANDOM.csv"
 # trainRandom.to_csv(train_fileRANDOM, index=False)
 # testRandom.to_csv(test_fileRANDOM, index=False)
 

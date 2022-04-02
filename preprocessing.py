@@ -20,7 +20,7 @@ def load_data():
     return ratings
 
 
-def create_test(ratings, grid_search=False):
+def create_test(ratings, grid_search):
 
     # Make train test split
     if grid_search:
