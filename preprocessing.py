@@ -1,6 +1,5 @@
 # Imports
 import pandas as pd
-import numpy as np
 
 # Load data from 100k dataset and put into pandas dataframe
 def load_data():
