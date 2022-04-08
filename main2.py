@@ -41,6 +41,7 @@ ratings.to_csv('ratings.csv', index=False)
 if explore_data:
     print('----------data exploration -------------')
     data_exploration(ratings)
+    make_distribution_plot(ratings)
 
 
 # Make train-test split
