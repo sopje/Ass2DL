@@ -1,8 +1,8 @@
-# imports
+# Imports
 import pandas as pd
 import numpy as np
 
-
+# Load data from 100k dataset and put into pandas dataframe
 def load_data():
     with open('data/ml-100k/u.data') as input_file:
         lines = input_file.readlines()
@@ -19,9 +19,8 @@ def load_data():
     ratings['timestamp'] = ratings.timestamp.astype(int)
     return ratings
 
-
+# Create test and train data from ratings
 def create_test(ratings, grid_search):
-
     # Make train test split
     if grid_search:
         test = ratings.groupby("userID").sample(random_state=42).reset_index()  # TODO: set randomstate
@@ -38,7 +37,8 @@ def create_test(ratings, grid_search):
         test = test[test["userID"].isin(train["userID"].unique())]
         test = test[test["itemID"].isin(train["itemID"].unique())]
 
-    # sort train data by user id
+    # Sort train and test data by user id
     train = train.sort_values(by='userID')
+    test = test.sort_values(by='userID')
 
     return test, train

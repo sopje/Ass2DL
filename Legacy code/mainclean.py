@@ -68,8 +68,8 @@ print(leave_one_out_test)
 
 #%%
 
-train_file = "./train.csv"
-test_file = "./test.csv"
+train_file = "../train.csv"
+test_file = "../test.csv"
 leave_one_out_test_file = "./leave_one_out_test.csv"
 train.to_csv(train_file, index=False)
 test.to_csv(test_file, index=False)

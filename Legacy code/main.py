@@ -72,9 +72,9 @@ train = train.sort_values(by='userID')
 print(train)
 # leave_one_out_test.sort_values(by='userID')
 #
-train_file = "./train.csv"
+train_file = "../train.csv"
 # test_file = "./test.csv"
-leave_one_out_test_file = "./leave_one_out_test.csv"
+leave_one_out_test_file = "../leave_one_out_test.csv"
 train.to_csv(train_file, index=False)
 # test.to_csv(test_file, index=False)
 leave_one_out_test.to_csv(leave_one_out_test_file, index=False)
