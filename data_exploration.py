@@ -21,10 +21,12 @@ def data_exploration(ratings):
 
 def make_distribution_plot(ratings):
     count_users = ratings['userID'].value_counts(sort=False, ascending=True)
-    plt.figure(figsize=(10,5))
+    plt.figure(figsize=(13,8))
     count_users.plot.hist(bins=50,color='lightseagreen')
-    plt.xlabel('Number of rated movies', fontsize=14)
-    plt.ylabel('Frequency', fontsize=14)
+    plt.xlabel('Number of rated movies', fontsize=24)
+    plt.ylabel('Frequency', fontsize=24)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     plt.savefig('plot_distribution.png')
     plt.show()
     return
