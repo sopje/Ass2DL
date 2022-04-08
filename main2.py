@@ -18,7 +18,7 @@ n_epochs = 100
 
 # Grid search and data exploration parameter
 grid_search = False
-explore_data = False
+explore_data = True
 
 # Model parameters
 if grid_search:
@@ -41,6 +41,7 @@ ratings.to_csv('ratings.csv', index=False)
 if explore_data:
     print('----------data exploration -------------')
     data_exploration(ratings)
+
 
 # Make train-test split
 print('---------- pre-processing -----------')
