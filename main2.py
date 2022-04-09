@@ -14,11 +14,11 @@ import numpy as np
 # Run parameters
 top_k = 10  # Top k items to recommend
 seed = default_seed
-n_epochs = 1
+n_epochs = 100
 
 # Grid search and Data exploration parameter
 grid_search = False
-explore_data = True
+explore_data = False
 
 # Model parameters
 if grid_search:
@@ -42,6 +42,8 @@ if explore_data:
     print('----------Data exploration -------------')
     data_exploration(ratings)
     make_distribution_plot(ratings)
+
+    make_k_results_plot()
 
 
 # Make train-test split
