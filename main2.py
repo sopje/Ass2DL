@@ -12,11 +12,11 @@ import itertools
 import numpy as np
 
 # Run parameters
-top_k = 7  # Top k items to recommend
+top_k = 10  # Top k items to recommend
 seed = default_seed
-n_epochs = 100
+n_epochs = 1
 
-# Grid search and data exploration parameter
+# Grid search and Data exploration parameter
 grid_search = False
 explore_data = True
 
@@ -32,14 +32,14 @@ else:
     layer_sizes_list = [[32, 16, 8]]
     n_factors_list = [16]
 
-# Load data
-print('--------- load data ----------')
+# Load Data
+print('--------- load Data ----------')
 ratings = load_data()
 ratings.to_csv('ratings.csv', index=False)
 
 # Data exploration
 if explore_data:
-    print('----------data exploration -------------')
+    print('----------Data exploration -------------')
     data_exploration(ratings)
     make_distribution_plot(ratings)
 

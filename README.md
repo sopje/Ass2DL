@@ -23,6 +23,9 @@ dataset.py and ncf_singlenode.py with the version you find on this page.
 Furthermore, in order for the recommenders package to work, make sure you have installed Microsoft C++ Build Tools and 
 have followed all the steps mentioned in their README file in order for the package to work as intented.
 
+## Data
+Create a directory named Data in your project folder and zip the contents of: https://files.grouplens.org/datasets/movielens/ml-100k.zip
+in this folder. Specifically you need the file named u.data.
 ## Running
 
 To run both models:

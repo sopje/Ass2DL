@@ -6,7 +6,7 @@ import pandas as pd
 
 
 def data_exploration(ratings):
-    print('data selected from ', len(ratings['userID'].unique()), ' unique users')
+    print('Data selected from ', len(ratings['userID'].unique()), ' unique users')
     print('there are ', len(ratings), ' ratings given')
     print('there are ', len(ratings['itemID'].unique()), ' different movies rated')
 

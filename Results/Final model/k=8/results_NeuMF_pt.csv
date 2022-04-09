@@ -1,0 +1,2 @@
+,Parameters,Final loss,Train time,NDCG,HR,Final Loss
+0,"NeuMF_pt: batch_size=256 learning_rate=0.0001 layer_sizes=[32, 16, 8] n_factors=16",,64693.125917000005,0.7679883635049657,0.7539766702014846,0.22524014115333557
